@@ -1,0 +1,4 @@
+This file is front driver for windows
+the directory Virtio should be compile first, when it compiled, a lib is generated,
+then use this lib to comple Pcie.
+comple should use WDK8.1
