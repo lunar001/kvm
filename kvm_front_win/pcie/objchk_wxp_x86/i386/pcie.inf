@@ -1,0 +1,98 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;
+; Copyright (c) 2010-2015 Red Hat Inc.
+;
+;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%REDHAT%
+DriverVer=05/22/2015,6.1.7600.16385
+;CatalogFile=vioser.cat
+;DriverPackageType = PlugAndPlay
+;DriverPackageDisplayName = %VirtioSerial.DeviceDesc%
+;PnpLockdown = 1
+
+[DestinationDirs]
+Drivers_Dir = 12
+VirtioPcie_Device_CoInstaller_CopyFiles = 11
+
+
+
+
+;*****************************************
+; vioser  Install Section
+;*****************************************
+
+[Manufacturer]
+%REDHAT%=VirtioPcie,NTx86
+
+[VirtioPcie]
+;
+; Hw Id is PCI\VEN_1AF4&DEV_1003&SUBSYS_00031AF4
+;
+%VirtioPcie.DeviceDesc%=VirtioPcie_Device, PCI\VEN_1AF4&DEV_1005&SUBSYS_00031AF4&REV_00
+
+; Decorated model section take precedence over undecorated
+; ones on XP and later.
+[VirtioPcie.NTx86]
+%VirtioPcie.DeviceDesc%=VirtioPcie_Device, PCI\VEN_1AF4&DEV_1005&SUBSYS_00031AF4&REV_00
+
+[VirtioPcie_Device.NT]
+CopyFiles=Drivers_Dir
+
+[VirtioPcie_Device.NT.HW]
+AddReg=VirtioPcie_AddReg
+
+[VirtioPcie_AddReg]
+HKR,Interrupt Management,,0x00000010
+HKR,Interrupt Management\MessageSignaledInterruptProperties,,0x00000010
+HKR,Interrupt Management\MessageSignaledInterruptProperties,MSISupported,0x00010001,1
+HKR,Interrupt Management\MessageSignaledInterruptProperties,MessageNumberLimit,0x00010001,2
+
+[Drivers_Dir]
+pcie.sys
+
+;-------------- Service installation
+
+[VirtioPcie_Device.NT.Services]
+AddService = VirtioPcie, 0x00000002, VirtioPcie_Service_Inst
+
+; -------------- VirtioSerial driver install sections
+[VirtioPcie_Service_Inst]
+DisplayName    = %VirtioPcie.ServiceDesc%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\pcie.sys
+
+;--- VirtioPcie_Device Coinstaller installation ------
+;
+
+[VirtioPcie_Device.NT.CoInstallers]
+AddReg=VirtioPcie_Device_CoInstaller_AddReg
+CopyFiles=VirtioPcie_Device_CoInstaller_CopyFiles
+
+[VirtioPcie_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller01009.dll,WdfCoInstaller"
+
+[VirtioPcie_Device_CoInstaller_CopyFiles]
+WdfCoInstaller01009.dll
+
+
+
+[VirtioPcie_Device.NT.Wdf]
+KmdfService =  VirtioPcie, VirtioPcie_wdfsect
+
+[VirtioPcie_wdfsect]
+KmdfLibraryVersion = 1.9
+
+[Strings]
+REDHAT = "Red Hat, Inc."
+;DiskId1 = "VirtIO-Serial Installation Disk #1"
+VirtioPcie.DeviceDesc = "VirtIO-Pcie Driver"
+VirtioPcie.ServiceDesc = "VirtIO-Pcie Service"
+
